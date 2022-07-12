@@ -15,17 +15,19 @@ class Figure:
         else:
             self.enemy_king = 4
 
-
-class Pawn(Figure):
-    def __init__(self, index, color, white_positions, black_positions, position):
-        super().__init__(index, color, white_positions, black_positions, position)
-
     def move(self, new_position):
         self.current_position = new_position
 
+
+class Pawn(Figure):
+    def __init__(self, index, color, white_positions, black_positions, position, movement_dict, movement_LT):
+        super().__init__(index, color, white_positions, black_positions, position)
+        self.movement_dict = movement_dict
+        self.movement_LT = movement_LT
+
     def get_possible_movement_positions(self):
         if self.color == 'white':
-
+            A = 1
         return 1  # return all possible movement positions
 
     def check_threatenings(self):
@@ -35,9 +37,6 @@ class Pawn(Figure):
 class Rook(Figure):
     def __init__(self, index, color, white_positions, black_positions, position):
         super().__init__(index, color, white_positions, black_positions, position)
-
-    def move(self, new_position):
-        self.current_position = new_position
 
     def get_possible_movement_positions(self):
         return 1  # return all possible movement positions
@@ -50,9 +49,6 @@ class Bishop(Figure):
     def __init__(self, index, color, white_positions, black_positions, position):
         super().__init__(index, color, white_positions, black_positions, position)
 
-    def move(self, new_position):
-        self.current_position = new_position
-
     def get_possible_movement_positions(self):
         return 1  # return all possible movement positions
 
@@ -63,9 +59,6 @@ class Bishop(Figure):
 class Knight(Figure):
     def __init__(self, index, color, white_positions, black_positions, position):
         super().__init__(index, color, white_positions, black_positions, position)
-
-    def move(self, new_position):
-        self.current_position = new_position
 
     def get_possible_movement_positions(self):
         return 1  # return all possible movement positions
@@ -78,9 +71,6 @@ class Queen(Figure):
     def __init__(self, index, color, white_positions, black_positions, position):
         super().__init__(index, color, white_positions, black_positions, position)
 
-    def move(self, new_position):
-        self.current_position = new_position
-
     def get_possible_movement_positions(self):
         return 1  # return all possible movement positions
 
@@ -91,9 +81,6 @@ class Queen(Figure):
 class King(Figure):
     def __init__(self, index, color, white_positions, black_positions, position):
         super().__init__(index, color, white_positions, black_positions, position)
-
-    def move(self, new_position):
-        self.current_position = new_position
 
     def get_possible_movement_positions(self):
         return 1  # return all possible movement positions
