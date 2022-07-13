@@ -4,12 +4,16 @@ from matplotlib import image
 
 
 class Figure:
-    def __init__(self, index, color, white_positions, black_positions, position):
+    def __init__(self, index, color, white_positions, black_positions, position, Lookup_Tables):
         self.index = index
         self.color = color
         self.white_positions = white_positions
         self.black_positions = black_positions
         self.current_position = position
+        self.Lookup_Tables = Lookup_Tables
+        self.boundary_LT = self.Lookup_Tables['boundary']
+        self.position_boundary_type = self.get_boundary_type(index)
+        self.already_moved = False
         if color == 'white':
             self.enemy_king = 28
         else:
@@ -18,15 +22,78 @@ class Figure:
     def move(self, new_position):
         self.current_position = new_position
 
+    def get_boundary_type(self, field_id):
+        return self.boundary_LT[field_id]
+
 
 class Pawn(Figure):
     def __init__(self, index, color, white_positions, black_positions, position, Lookup_Tables):
-        super().__init__(index, color, white_positions, black_positions, position)
-        self.Lookup_Tables = Lookup_Tables
+        super().__init__(index, color, white_positions, black_positions, position, Lookup_Tables)
 
     def get_possible_movement_positions(self):
+        pos = self.current_position
+        boundary = self.get_boundary_type(pos)
+        arr = []
         if self.color == 'white':
-            A = 1
+            # normal field no boundary
+            if boundary > 8:
+                if self.black_positions[pos + 8] == 0:
+                    arr.append(pos + 8)
+                    if self.already_moved == False and self.black_positions[pos + 16] == 0:
+                        arr.append(pos + 16)
+                if self.black_positions[pos + 7] != 0 and self.black_positions[pos + 7] != self.enemy_king:
+                    arr.append(pos + 7)
+                if self.black_positions[pos + 9] != 0 and self.black_positions[pos + 9] != self.enemy_king:
+                    arr.append(pos + 9)
+            # left border
+            elif boundary == 5:
+                if self.black_positions[pos + 8] == 0:
+                    arr.append(pos + 8)
+                    if self.already_moved == False and self.black_positions[pos + 16] == 0:
+                        arr.append(pos + 16)
+                if self.black_positions[pos + 9] != 0 and self.black_positions[pos + 9] != self.enemy_king:
+                    arr.append(pos + 9)
+            # right border
+            elif boundary == 7:
+                if self.black_positions[pos + 8] == 0:
+                    arr.append(pos + 8)
+                    if self.already_moved == False and self.black_positions[pos + 16] == 0:
+                        arr.append(pos + 16)
+                if self.black_positions[pos + 7] != 0 and self.black_positions[pos + 7] != self.enemy_king:
+                    arr.append(pos + 7)
+        elif self.color == 'black':
+            # normal field no boundary
+            if boundary > 8:
+                if self.white_positions[pos - 8] == 0:
+                    arr.append(pos - 8)
+                    if self.already_moved == False and self.white_positions[pos - 16] == 0:
+                        arr.append(pos - 16)
+                if self.white_positions[pos - 7] != 0 and self.white_positions[pos - 7] != self.enemy_king:
+                    arr.append(pos - 7)
+                if self.white_positions[pos - 9] != 0 and self.white_positions[pos - 9] != self.enemy_king:
+                    arr.append(pos - 9)
+            # left border
+            elif boundary == 5:
+                if self.white_positions[pos - 8] == 0:
+                    arr.append(pos - 8)
+                    if self.already_moved == False and self.white_positions[pos - 16] == 0:
+                        arr.append(pos - 16)
+                if self.white_positions[pos - 7] != 0 and self.white_positions[pos - 7] != self.enemy_king:
+                    arr.append(pos - 7)
+            # right border
+            elif boundary == 7:
+                if self.white_positions[pos - 8] == 0:
+                    arr.append(pos - 8)
+                    if self.already_moved == False and self.white_positions[pos - 16] == 0:
+                        arr.append(pos - 16)
+                if self.white_positions[pos - 9] != 0 and self.white_positions[pos - 9] != self.enemy_king:
+                    arr.append(pos - 9)
+
+        array = np.empty((len(arr), 2), dtype=np.uint8)
+        array[:, 0] = self.index
+        array[:, 1] = np.array(arr)
+        return array
+
         return 1  # return all possible movement positions
 
     def check_threatenings(self):
@@ -35,8 +102,7 @@ class Pawn(Figure):
 
 class Rook(Figure):
     def __init__(self, index, color, white_positions, black_positions, position, Lookup_Tables):
-        super().__init__(index, color, white_positions, black_positions, position)
-        self.Lookup_Tables = Lookup_Tables
+        super().__init__(index, color, white_positions, black_positions, position, Lookup_Tables)
 
     def get_possible_movement_positions(self):
         return 1  # return all possible movement positions
@@ -47,8 +113,7 @@ class Rook(Figure):
 
 class Bishop(Figure):
     def __init__(self, index, color, white_positions, black_positions, position, Lookup_Tables):
-        super().__init__(index, color, white_positions, black_positions, position)
-        self.Lookup_Tables = Lookup_Tables
+        super().__init__(index, color, white_positions, black_positions, position, Lookup_Tables)
 
     def get_possible_movement_positions(self):
         return 1  # return all possible movement positions
@@ -59,8 +124,7 @@ class Bishop(Figure):
 
 class Knight(Figure):
     def __init__(self, index, color, white_positions, black_positions, position, Lookup_Tables):
-        super().__init__(index, color, white_positions, black_positions, position)
-        self.Lookup_Tables = Lookup_Tables
+        super().__init__(index, color, white_positions, black_positions, position, Lookup_Tables)
 
     def get_possible_movement_positions(self):
         return 1  # return all possible movement positions
@@ -71,8 +135,7 @@ class Knight(Figure):
 
 class Queen(Figure):
     def __init__(self, index, color, white_positions, black_positions, position, Lookup_Tables):
-        super().__init__(index, color, white_positions, black_positions, position)
-        self.Lookup_Tables = Lookup_Tables
+        super().__init__(index, color, white_positions, black_positions, position, Lookup_Tables)
 
     def get_possible_movement_positions(self):
         return 1  # return all possible movement positions
@@ -83,8 +146,7 @@ class Queen(Figure):
 
 class King(Figure):
     def __init__(self, index, color, white_positions, black_positions, position, Lookup_Tables):
-        super().__init__(index, color, white_positions, black_positions, position)
-        self.Lookup_Tables = Lookup_Tables
+        super().__init__(index, color, white_positions, black_positions, position, Lookup_Tables)
 
     def get_possible_movement_positions(self):
         return 1  # return all possible movement positions
@@ -108,7 +170,8 @@ class Chessboard:
         # set white figures
         # Pawns
         for i in range(8):  # create white pawns
-            self.white_figures.append(Pawn(i + 9, 'white', self.white_positions, self.black_positions, i + 8, Lookup_Tables))
+            self.white_figures.append(
+                Pawn(i + 9, 'white', self.white_positions, self.black_positions, i + 8, Lookup_Tables))
         # Rooks
         self.white_figures.append(Rook(1, 'white', self.white_positions, self.black_positions, 0, Lookup_Tables))
         self.white_figures.append(Rook(8, 'white', self.white_positions, self.black_positions, 7, Lookup_Tables))
@@ -124,7 +187,8 @@ class Chessboard:
         # set black figures
         # Pawns
         for i in range(8):  # create black pawns
-            self.black_figures.append(Pawn(i + 17, 'black', self.white_positions, self.black_positions, i + 48, Lookup_Tables))
+            self.black_figures.append(
+                Pawn(i + 17, 'black', self.white_positions, self.black_positions, i + 48, Lookup_Tables))
         # Rooks
         self.black_figures.append(Rook(25, 'black', self.white_positions, self.black_positions, 56, Lookup_Tables))
         self.black_figures.append(Rook(32, 'black', self.white_positions, self.black_positions, 63, Lookup_Tables))
@@ -211,10 +275,11 @@ class Chessboard:
         plt.show()
 
     def get_all_possible_moves(self, color):
+        all_moves = []
         if color == 'white':
-            all_moves = []
             for figure in self.white_figures:
                 all_moves.append(figure.get_possible_movement_positions())
-            return moves
         else:
-            A = 1
+            for figure in self.black_figures:
+                all_moves.append(figure.get_possible_movement_positions())
+        return all_moves
