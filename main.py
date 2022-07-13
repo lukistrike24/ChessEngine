@@ -1,6 +1,6 @@
 
 from Classes import Chessboard
-from movement_lookup_tables import get_movement_LT_dict
+from lookup_tables import get_movement_LT_dict
 
 Lookup_Tables = get_movement_LT_dict()
 
