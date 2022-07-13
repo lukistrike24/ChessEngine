@@ -25,6 +25,68 @@ class Figure:
     def get_boundary_type(self, field_id):
         return self.boundary_LT[field_id]
 
+    def go_straight_direction(self, direction):
+        pos = self.current_position
+
+        def move_straight(pos, increment, b1, b2, b3, color):
+            arr = []
+            if color == 'white':
+                # go direction
+                nn = 0
+                available = True
+                while available:
+                    # check if not already upper border
+                    bb = self.get_boundary_type(pos + nn * increment)
+                    if not (bb == b1 or bb == b2 or bb == b3):
+                        nn = nn + 1
+                        # check if no own figure is in the way
+                        if self.white_positions[pos + nn * increment] == 0:
+                            if self.black_positions[pos + nn * increment] == 0:
+                                arr.append(pos + nn * increment)
+                            elif self.black_positions[pos + nn * increment] != self.enemy_king:
+                                arr.append(pos + nn * increment)
+                                available = False
+                            else:
+                                available = False
+                        else:
+                            available = False
+                    else:
+                        available = False
+                return arr
+
+            elif color == 'black':
+                # go direction
+                nn = 0
+                available = True
+                while available:
+                    # check if not already upper border
+                    bb = self.get_boundary_type(pos + nn * increment)
+                    if not (bb == b1 or bb == b2 or bb == b3):
+                        nn = nn + 1
+                        # check if no own figure is in the way
+                        if self.black_positions[pos + nn * increment] == 0:
+                            if self.white_positions[pos + nn * increment] == 0:
+                                arr.append(pos + nn * increment)
+                            elif self.white_positions[pos + nn * increment] != self.enemy_king:
+                                arr.append(pos + nn * increment)
+                                available = False
+                            else:
+                                available = False
+                        else:
+                            available = False
+                    else:
+                        available = False
+                return arr
+
+        if direction == 'up':
+            return move_straight(pos, -8, 8, 1, 4, self.color)
+        elif direction == 'down':
+            return move_straight(pos, 8, 6, 2, 3, self.color)
+        elif direction == 'left':
+            return move_straight(pos, -1, 5, 1, 2, self.color)
+        elif direction == 'right':
+            return move_straight(pos, 1, 7, 3, 4, self.color)
+
 
 class Pawn(Figure):
     def __init__(self, index, color, white_positions, black_positions, position, Lookup_Tables):
@@ -105,7 +167,16 @@ class Rook(Figure):
         super().__init__(index, color, white_positions, black_positions, position, Lookup_Tables)
 
     def get_possible_movement_positions(self):
-        return 1  # return all possible movement positions
+        lists = []
+        lists = lists + self.go_straight_direction('up')
+        lists = lists + self.go_straight_direction('down')
+        lists = lists + self.go_straight_direction('left')
+        lists = lists + self.go_straight_direction('right')
+
+        array = np.empty((len(lists), 2), dtype=np.uint8)
+        array[:, 0] = self.index
+        array[:, 1] = np.array(lists)
+        return array  # return all possible movement positions
 
     def check_threatenings(self):
         return 1  # return index of threatened figures if there are any
