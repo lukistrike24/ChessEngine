@@ -8,9 +8,9 @@ board = Chessboard()
 
 board.initialize_standard_board(Lookup_Tables)
 
-# start = time()
-# board.make_random_moves(100000, plott_all=False)
-# print(time()-start)
+start = time()
+board.make_random_moves(100000, plott_all=False)
+print(time()-start)
 
 # board.visualize_board()
 
@@ -19,8 +19,8 @@ board.initialize_standard_board(Lookup_Tables)
 #
 # A = 1
 #
-start = time()
-for i in range(10000):
-    white_moves = board.get_all_possible_moves('white')
-    black_moves = board.get_all_possible_moves('black')
-print(time()-start)
+# start = time()
+# for i in range(10000):
+#     white_moves = board.get_all_possible_moves('white')
+#     black_moves = board.get_all_possible_moves('black')
+# print(time()-start)

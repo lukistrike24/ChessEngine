@@ -185,7 +185,7 @@ class Pawn(Figure):
         if self.color == 'white':
             # normal field no boundary
             if boundary > 8:
-                if self.black_positions[pos + 8] == 0:
+                if self.black_positions[pos + 8] == 0 and self.white_positions[pos + 8] == 0:
                     arr.append(pos + 8)
                     if self.already_moved == False and self.black_positions[pos + 16] == 0:
                         arr.append(pos + 16)
@@ -195,7 +195,7 @@ class Pawn(Figure):
                     arr.append(pos + 9)
             # left border
             elif boundary == 5:
-                if self.black_positions[pos + 8] == 0:
+                if self.black_positions[pos + 8] == 0 and self.white_positions[pos + 8] == 0:
                     arr.append(pos + 8)
                     if self.already_moved == False and self.black_positions[pos + 16] == 0:
                         arr.append(pos + 16)
@@ -203,7 +203,7 @@ class Pawn(Figure):
                     arr.append(pos + 9)
             # right border
             elif boundary == 7:
-                if self.black_positions[pos + 8] == 0:
+                if self.black_positions[pos + 8] == 0 and self.white_positions[pos + 8] == 0:
                     arr.append(pos + 8)
                     if self.already_moved == False and self.black_positions[pos + 16] == 0:
                         arr.append(pos + 16)
@@ -212,7 +212,7 @@ class Pawn(Figure):
         elif self.color == 'black':
             # normal field no boundary
             if boundary > 8:
-                if self.white_positions[pos - 8] == 0:
+                if self.white_positions[pos - 8] == 0 and self.black_positions[pos - 8] == 0:
                     arr.append(pos - 8)
                     if self.already_moved == False and self.white_positions[pos - 16] == 0:
                         arr.append(pos - 16)
@@ -222,7 +222,7 @@ class Pawn(Figure):
                     arr.append(pos - 9)
             # left border
             elif boundary == 5:
-                if self.white_positions[pos - 8] == 0:
+                if self.white_positions[pos - 8] == 0 and self.black_positions[pos - 8] == 0:
                     arr.append(pos - 8)
                     if self.already_moved == False and self.white_positions[pos - 16] == 0:
                         arr.append(pos - 16)
@@ -230,7 +230,7 @@ class Pawn(Figure):
                     arr.append(pos - 7)
             # right border
             elif boundary == 7:
-                if self.white_positions[pos - 8] == 0:
+                if self.white_positions[pos - 8] == 0 and self.black_positions[pos - 8] == 0:
                     arr.append(pos - 8)
                     if self.already_moved == False and self.white_positions[pos - 16] == 0:
                         arr.append(pos - 16)
