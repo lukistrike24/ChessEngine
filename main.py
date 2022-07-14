@@ -9,8 +9,8 @@ board = Chessboard()
 board.initialize_standard_board(Lookup_Tables)
 
 start = time()
-board.make_random_moves(100000, plott_all=False)
-print(time()-start)
+board.make_random_moves(100000, plot=False, plot_all=False)
+print(time() - start)
 
 # board.visualize_board()
 

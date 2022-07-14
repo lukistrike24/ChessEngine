@@ -456,7 +456,7 @@ class Chessboard:
             fig.figimage(img, 60 - (isize[0] / 2) + x_pos, 60 - (isize[1] / 2) + y_pos, origin="upper")
         plt.show()
 
-    def make_random_moves(self, number, plott_all=True):
+    def make_random_moves(self, number, plot=True, plot_all=False):
         for m in range(number):
             # move white
             fig = self.white_figures[np.random.randint(1, 17)]
@@ -465,7 +465,7 @@ class Chessboard:
                 if len(pos > 0):
                     pos = pos[np.random.randint(0, int(pos.size / 2)), :]
                     self.white_figures[pos[0]].move(pos[1])
-                    if plott_all:
+                    if plot_all:
                         self.visualize_board()
             # move black
             fig = self.black_figures[np.random.randint(17, 33)]
@@ -474,9 +474,10 @@ class Chessboard:
                 if len(pos > 0):
                     pos = pos[np.random.randint(0, int(pos.size / 2)), :]
                     self.black_figures[pos[0]].move(pos[1])
-                    if plott_all:
+                    if plot_all:
                         self.visualize_board()
-        self.visualize_board()
+        if plot:
+            self.visualize_board()
 
     def get_all_possible_moves(self, color):
         all_moves = []
