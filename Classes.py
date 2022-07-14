@@ -3,6 +3,7 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import image
+from numba import jit
 
 
 class Figure:
@@ -39,6 +40,7 @@ class Figure:
     def go_straight_direction(self, direction):
         pos = self.current_position
 
+        @jit(cache=True, nopython=True)
         def move_straight(pos, increment, b1, b2, b3, color):
             arr = []
             if color == 'white':
@@ -97,6 +99,68 @@ class Figure:
             return move_straight(pos, -1, 5, 1, 2, self.color)
         elif direction == 'right':
             return move_straight(pos, 1, 7, 3, 4, self.color)
+
+    def go_diagonal_direction(self, direction):
+        pos = self.current_position
+
+        def move_diagonal(pos, increment, b1, b2, b3, b4, b5, color):
+            arr = []
+            if color == 'white':
+                # go direction
+                nn = 0
+                available = True
+                while available:
+                    # check if not already upper border
+                    bb = self.get_boundary_type(pos + nn * increment)
+                    if not (bb == b1 or bb == b2 or bb == b3 or bb == b4 or bb == b5):
+                        nn = nn + 1
+                        # check if no own figure is in the way
+                        if self.white_positions[pos + nn * increment] == 0:
+                            if self.black_positions[pos + nn * increment] == 0:
+                                arr.append(pos + nn * increment)
+                            elif self.black_positions[pos + nn * increment] != self.enemy_king:
+                                arr.append(pos + nn * increment)
+                                available = False
+                            else:
+                                available = False
+                        else:
+                            available = False
+                    else:
+                        available = False
+                return arr
+
+            elif color == 'black':
+                # go direction
+                nn = 0
+                available = True
+                while available:
+                    # check if not already upper border
+                    bb = self.get_boundary_type(pos + nn * increment)
+                    if not (bb == b1 or bb == b2 or bb == b3 or bb == b4 or bb == b5):
+                        nn = nn + 1
+                        # check if no own figure is in the way
+                        if self.black_positions[pos + nn * increment] == 0:
+                            if self.white_positions[pos + nn * increment] == 0:
+                                arr.append(pos + nn * increment)
+                            elif self.white_positions[pos + nn * increment] != self.enemy_king:
+                                arr.append(pos + nn * increment)
+                                available = False
+                            else:
+                                available = False
+                        else:
+                            available = False
+                    else:
+                        available = False
+                return arr
+
+        if direction == 'left_up':
+            return move_diagonal(pos, -9, 5, 8, 2, 1, 4, self.color)
+        elif direction == 'right_up':
+            return move_diagonal(pos, -7, 7, 8, 3, 1, 4, self.color)
+        elif direction == 'left_down':
+            return move_diagonal(pos, 7, 5, 6, 1, 2, 3, self.color)
+        elif direction == 'right_down':
+            return move_diagonal(pos, 9, 7, 6, 2, 3, 4, self.color)
 
 
 class Pawn(Figure):
@@ -198,7 +262,16 @@ class Bishop(Figure):
         super().__init__(index, color, white_positions, black_positions, position, Lookup_Tables)
 
     def get_possible_movement_positions(self):
-        return self.index  # return all possible movement positions
+        lists = []
+        lists = lists + self.go_diagonal_direction('left_up')
+        lists = lists + self.go_diagonal_direction('left_down')
+        lists = lists + self.go_diagonal_direction('right_up')
+        lists = lists + self.go_diagonal_direction('right_down')
+
+        array = np.empty((len(lists), 2), dtype=np.uint8)
+        array[:, 0] = self.index
+        array[:, 1] = np.array(lists)
+        return array  # return all possible movement positions
 
     def check_threatenings(self):
         return 1  # return index of threatened figures if there are any
@@ -220,7 +293,21 @@ class Queen(Figure):
         super().__init__(index, color, white_positions, black_positions, position, Lookup_Tables)
 
     def get_possible_movement_positions(self):
-        return self.index  # return all possible movement positions
+        lists = []
+        lists = lists + self.go_straight_direction('up')
+        lists = lists + self.go_straight_direction('down')
+        lists = lists + self.go_straight_direction('left')
+        lists = lists + self.go_straight_direction('right')
+
+        lists = lists + self.go_diagonal_direction('left_up')
+        lists = lists + self.go_diagonal_direction('left_down')
+        lists = lists + self.go_diagonal_direction('right_up')
+        lists = lists + self.go_diagonal_direction('right_down')
+
+        array = np.empty((len(lists), 2), dtype=np.uint8)
+        array[:, 0] = self.index
+        array[:, 1] = np.array(lists)
+        return array  # return all possible movement positions
 
     def check_threatenings(self):
         return 1  # return index of threatened figures if there are any
@@ -252,7 +339,8 @@ class Chessboard:
         # set white figures
         # Pawns
         for i in range(8):  # create white pawns
-            self.white_figures[i + 9] = Pawn(i + 9, 'white', self.white_positions, self.black_positions, i + 8, Lookup_Tables)
+            self.white_figures[i + 9] = Pawn(i + 9, 'white', self.white_positions, self.black_positions, i + 8,
+                                             Lookup_Tables)
         # Rooks
         self.white_figures[1] = Rook(1, 'white', self.white_positions, self.black_positions, 0, Lookup_Tables)
         self.white_figures[8] = Rook(8, 'white', self.white_positions, self.black_positions, 7, Lookup_Tables)
@@ -268,7 +356,8 @@ class Chessboard:
         # set black figures
         # Pawns
         for i in range(8):  # create black pawns
-            self.black_figures[i+17] = Pawn(i + 17, 'black', self.white_positions, self.black_positions, i + 48, Lookup_Tables)
+            self.black_figures[i + 17] = Pawn(i + 17, 'black', self.white_positions, self.black_positions, i + 48,
+                                              Lookup_Tables)
         # Rooks
         self.black_figures[25] = Rook(25, 'black', self.white_positions, self.black_positions, 56, Lookup_Tables)
         self.black_figures[32] = Rook(32, 'black', self.white_positions, self.black_positions, 63, Lookup_Tables)
@@ -361,18 +450,18 @@ class Chessboard:
             # move white
             fig = self.white_figures[np.random.randint(1, 17)]
             pos = fig.get_possible_movement_positions()
-            if not isinstance(pos, int):     # only temorary check if all implemented this will no longer be needed
+            if not isinstance(pos, int):  # only temorary check if all implemented this will no longer be needed
                 if len(pos > 0):
-                    pos = pos[np.random.randint(0, int(pos.size/2)), :]
+                    pos = pos[np.random.randint(0, int(pos.size / 2)), :]
                     self.white_figures[pos[0]].move(pos[1])
                     if plott_all:
                         self.visualize_board()
             # move black
             fig = self.black_figures[np.random.randint(17, 33)]
             pos = fig.get_possible_movement_positions()
-            if not isinstance(pos, int):     # only temorary check if all implemented this will no longer be needed
+            if not isinstance(pos, int):  # only temorary check if all implemented this will no longer be needed
                 if len(pos > 0):
-                    pos = pos[np.random.randint(0, int(pos.size/2)), :]
+                    pos = pos[np.random.randint(0, int(pos.size / 2)), :]
                     self.black_figures[pos[0]].move(pos[1])
                     if plott_all:
                         self.visualize_board()
