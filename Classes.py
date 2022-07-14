@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import image
@@ -20,7 +22,16 @@ class Figure:
             self.enemy_king = 4
 
     def move(self, new_position):
+        # update positions array
+        if self.color == 'white':
+            self.white_positions[self.current_position] = 0
+            self.white_positions[new_position] = self.index
+        else:
+            self.black_positions[self.current_position] = 0
+            self.black_positions[new_position] = self.index
+        # update other data
         self.current_position = new_position
+        self.already_moved = True
 
     def get_boundary_type(self, field_id):
         return self.boundary_LT[field_id]
@@ -187,7 +198,7 @@ class Bishop(Figure):
         super().__init__(index, color, white_positions, black_positions, position, Lookup_Tables)
 
     def get_possible_movement_positions(self):
-        return 1  # return all possible movement positions
+        return self.index  # return all possible movement positions
 
     def check_threatenings(self):
         return 1  # return index of threatened figures if there are any
@@ -198,7 +209,7 @@ class Knight(Figure):
         super().__init__(index, color, white_positions, black_positions, position, Lookup_Tables)
 
     def get_possible_movement_positions(self):
-        return 1  # return all possible movement positions
+        return self.index  # return all possible movement positions
 
     def check_threatenings(self):
         return 1  # return index of threatened figures if there are any
@@ -209,7 +220,7 @@ class Queen(Figure):
         super().__init__(index, color, white_positions, black_positions, position, Lookup_Tables)
 
     def get_possible_movement_positions(self):
-        return 1  # return all possible movement positions
+        return self.index  # return all possible movement positions
 
     def check_threatenings(self):
         return 1  # return index of threatened figures if there are any
@@ -220,7 +231,7 @@ class King(Figure):
         super().__init__(index, color, white_positions, black_positions, position, Lookup_Tables)
 
     def get_possible_movement_positions(self):
-        return 1  # return all possible movement positions
+        return self.index  # return all possible movement positions
 
     def check_threatenings(self):
         return 1  # return index of threatened figures if there are any
@@ -232,8 +243,8 @@ class Chessboard:
         self.icon_dict = {}
         self.white_positions = np.squeeze(np.zeros((64, 1), dtype=np.uint8))
         self.black_positions = np.squeeze(np.zeros((64, 1), dtype=np.uint8))
-        self.white_figures = []
-        self.black_figures = []
+        self.white_figures = {}
+        self.black_figures = {}
 
     def initialize_standard_board(self, Lookup_Tables):
         self.white_positions[0:16] = np.array(range(16)) + 1
@@ -241,37 +252,35 @@ class Chessboard:
         # set white figures
         # Pawns
         for i in range(8):  # create white pawns
-            self.white_figures.append(
-                Pawn(i + 9, 'white', self.white_positions, self.black_positions, i + 8, Lookup_Tables))
+            self.white_figures[i + 9] = Pawn(i + 9, 'white', self.white_positions, self.black_positions, i + 8, Lookup_Tables)
         # Rooks
-        self.white_figures.append(Rook(1, 'white', self.white_positions, self.black_positions, 0, Lookup_Tables))
-        self.white_figures.append(Rook(8, 'white', self.white_positions, self.black_positions, 7, Lookup_Tables))
+        self.white_figures[1] = Rook(1, 'white', self.white_positions, self.black_positions, 0, Lookup_Tables)
+        self.white_figures[8] = Rook(8, 'white', self.white_positions, self.black_positions, 7, Lookup_Tables)
         # Knights
-        self.white_figures.append(Knight(2, 'white', self.white_positions, self.black_positions, 1, Lookup_Tables))
-        self.white_figures.append(Knight(7, 'white', self.white_positions, self.black_positions, 6, Lookup_Tables))
+        self.white_figures[2] = Knight(2, 'white', self.white_positions, self.black_positions, 1, Lookup_Tables)
+        self.white_figures[7] = Knight(7, 'white', self.white_positions, self.black_positions, 6, Lookup_Tables)
         # Bishops
-        self.white_figures.append(Bishop(3, 'white', self.white_positions, self.black_positions, 2, Lookup_Tables))
-        self.white_figures.append(Bishop(6, 'white', self.white_positions, self.black_positions, 5, Lookup_Tables))
+        self.white_figures[3] = Bishop(3, 'white', self.white_positions, self.black_positions, 2, Lookup_Tables)
+        self.white_figures[6] = Bishop(6, 'white', self.white_positions, self.black_positions, 5, Lookup_Tables)
         # King and Queen
-        self.white_figures.append(King(4, 'white', self.white_positions, self.black_positions, 3, Lookup_Tables))
-        self.white_figures.append(Queen(5, 'white', self.white_positions, self.black_positions, 4, Lookup_Tables))
+        self.white_figures[4] = King(4, 'white', self.white_positions, self.black_positions, 3, Lookup_Tables)
+        self.white_figures[5] = Queen(5, 'white', self.white_positions, self.black_positions, 4, Lookup_Tables)
         # set black figures
         # Pawns
         for i in range(8):  # create black pawns
-            self.black_figures.append(
-                Pawn(i + 17, 'black', self.white_positions, self.black_positions, i + 48, Lookup_Tables))
+            self.black_figures[i+17] = Pawn(i + 17, 'black', self.white_positions, self.black_positions, i + 48, Lookup_Tables)
         # Rooks
-        self.black_figures.append(Rook(25, 'black', self.white_positions, self.black_positions, 56, Lookup_Tables))
-        self.black_figures.append(Rook(32, 'black', self.white_positions, self.black_positions, 63, Lookup_Tables))
+        self.black_figures[25] = Rook(25, 'black', self.white_positions, self.black_positions, 56, Lookup_Tables)
+        self.black_figures[32] = Rook(32, 'black', self.white_positions, self.black_positions, 63, Lookup_Tables)
         # Knights
-        self.black_figures.append(Knight(26, 'black', self.white_positions, self.black_positions, 57, Lookup_Tables))
-        self.black_figures.append(Knight(31, 'black', self.white_positions, self.black_positions, 62, Lookup_Tables))
+        self.black_figures[26] = Knight(26, 'black', self.white_positions, self.black_positions, 57, Lookup_Tables)
+        self.black_figures[31] = Knight(31, 'black', self.white_positions, self.black_positions, 62, Lookup_Tables)
         # Bishops
-        self.black_figures.append(Bishop(27, 'black', self.white_positions, self.black_positions, 58, Lookup_Tables))
-        self.black_figures.append(Bishop(30, 'black', self.white_positions, self.black_positions, 61, Lookup_Tables))
+        self.black_figures[27] = Bishop(27, 'black', self.white_positions, self.black_positions, 58, Lookup_Tables)
+        self.black_figures[30] = Bishop(30, 'black', self.white_positions, self.black_positions, 61, Lookup_Tables)
         # King and Queen
-        self.black_figures.append(King(28, 'black', self.white_positions, self.black_positions, 59, Lookup_Tables))
-        self.black_figures.append(Queen(29, 'black', self.white_positions, self.black_positions, 60, Lookup_Tables))
+        self.black_figures[28] = King(28, 'black', self.white_positions, self.black_positions, 59, Lookup_Tables)
+        self.black_figures[29] = Queen(29, 'black', self.white_positions, self.black_positions, 60, Lookup_Tables)
 
     def visualize_board(self):
         # convert chessboard indizes to pixel offsets for figure plotting on the board
@@ -303,8 +312,9 @@ class Chessboard:
         ax.set_ylim((0, 4))
         fig.figimage(self.icon_dict['board_img'], 60, 60, origin="upper")
 
-        for figure in self.white_figures:
+        for key in self.white_figures.keys():
             # get figure image keys
+            figure = self.white_figures[key]
             if figure.__class__.__name__ == 'Pawn':
                 fig_key = 'w_pawn_img'
             elif figure.__class__.__name__ == 'Rook':
@@ -324,8 +334,9 @@ class Chessboard:
             isize = img.shape[1], img.shape[0]
             fig.figimage(img, 60 - (isize[0] / 2) + x_pos, 60 - (isize[1] / 2) + y_pos, origin="upper")
 
-        for figure in self.black_figures:
+        for key in self.black_figures.keys():
             # get figure image keys
+            figure = self.black_figures[key]
             if figure.__class__.__name__ == 'Pawn':
                 fig_key = 'b_pawn_img'
             elif figure.__class__.__name__ == 'Rook':
@@ -344,6 +355,28 @@ class Chessboard:
             isize = img.shape[1], img.shape[0]
             fig.figimage(img, 60 - (isize[0] / 2) + x_pos, 60 - (isize[1] / 2) + y_pos, origin="upper")
         plt.show()
+
+    def make_random_moves(self, number, plott_all=True):
+        for m in range(number):
+            # move white
+            fig = self.white_figures[np.random.randint(1, 17)]
+            pos = fig.get_possible_movement_positions()
+            if not isinstance(pos, int):     # only temorary check if all implemented this will no longer be needed
+                if len(pos > 0):
+                    pos = pos[np.random.randint(0, int(pos.size/2)), :]
+                    self.white_figures[pos[0]].move(pos[1])
+                    if plott_all:
+                        self.visualize_board()
+            # move black
+            fig = self.black_figures[np.random.randint(17, 33)]
+            pos = fig.get_possible_movement_positions()
+            if not isinstance(pos, int):     # only temorary check if all implemented this will no longer be needed
+                if len(pos > 0):
+                    pos = pos[np.random.randint(0, int(pos.size/2)), :]
+                    self.black_figures[pos[0]].move(pos[1])
+                    if plott_all:
+                        self.visualize_board()
+        self.visualize_board()
 
     def get_all_possible_moves(self, color):
         all_moves = []
