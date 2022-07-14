@@ -6,6 +6,110 @@ from matplotlib import image
 from numba import jit
 
 
+@jit(cache=True, nopython=True, fastmath=True)
+def move_straight(pos, increment, b1, b2, b3, color, boundary_LT, white_positions, black_positions, enemy_king):
+    arr = []
+    if color == 'white':
+        # go direction
+        nn = 0
+        available = True
+        while available:
+            # check if not already upper border
+            bb = boundary_LT[(pos + nn * increment)]
+            if not (bb == b1 or bb == b2 or bb == b3):
+                nn = nn + 1
+                # check if no own figure is in the way
+                if white_positions[pos + nn * increment] == 0:
+                    if black_positions[pos + nn * increment] == 0:
+                        arr.append(pos + nn * increment)
+                    elif black_positions[pos + nn * increment] != enemy_king:
+                        arr.append(pos + nn * increment)
+                        available = False
+                    else:
+                        available = False
+                else:
+                    available = False
+            else:
+                available = False
+        return arr
+
+    elif color == 'black':
+        # go direction
+        nn = 0
+        available = True
+        while available:
+            # check if not already upper border
+            bb = boundary_LT[(pos + nn * increment)]
+            if not (bb == b1 or bb == b2 or bb == b3):
+                nn = nn + 1
+                # check if no own figure is in the way
+                if black_positions[pos + nn * increment] == 0:
+                    if white_positions[pos + nn * increment] == 0:
+                        arr.append(pos + nn * increment)
+                    elif white_positions[pos + nn * increment] != enemy_king:
+                        arr.append(pos + nn * increment)
+                        available = False
+                    else:
+                        available = False
+                else:
+                    available = False
+            else:
+                available = False
+        return arr
+
+
+@jit(cache=True, nopython=True, fastmath=True)
+def move_diagonal(pos, increment, b1, b2, b3, b4, b5, color, boundary_LT, white_positions, black_positions, enemy_king):
+    arr = []
+    if color == 'white':
+        # go direction
+        nn = 0
+        available = True
+        while available:
+            # check if not already upper border
+            bb = boundary_LT[pos + nn * increment]
+            if not (bb == b1 or bb == b2 or bb == b3 or bb == b4 or bb == b5):
+                nn = nn + 1
+                # check if no own figure is in the way
+                if white_positions[pos + nn * increment] == 0:
+                    if black_positions[pos + nn * increment] == 0:
+                        arr.append(pos + nn * increment)
+                    elif black_positions[pos + nn * increment] != enemy_king:
+                        arr.append(pos + nn * increment)
+                        available = False
+                    else:
+                        available = False
+                else:
+                    available = False
+            else:
+                available = False
+        return arr
+
+    elif color == 'black':
+        # go direction
+        nn = 0
+        available = True
+        while available:
+            # check if not already upper border
+            bb = boundary_LT[(pos + nn * increment)]
+            if not (bb == b1 or bb == b2 or bb == b3 or bb == b4 or bb == b5):
+                nn = nn + 1
+                # check if no own figure is in the way
+                if black_positions[pos + nn * increment] == 0:
+                    if white_positions[pos + nn * increment] == 0:
+                        arr.append(pos + nn * increment)
+                    elif white_positions[pos + nn * increment] != enemy_king:
+                        arr.append(pos + nn * increment)
+                        available = False
+                    else:
+                        available = False
+                else:
+                    available = False
+            else:
+                available = False
+        return arr
+
+
 class Figure:
     def __init__(self, index, color, white_positions, black_positions, position, Lookup_Tables):
         self.index = index
@@ -40,127 +144,34 @@ class Figure:
     def go_straight_direction(self, direction):
         pos = self.current_position
 
-        @jit(cache=True, nopython=True)
-        def move_straight(pos, increment, b1, b2, b3, color):
-            arr = []
-            if color == 'white':
-                # go direction
-                nn = 0
-                available = True
-                while available:
-                    # check if not already upper border
-                    bb = self.get_boundary_type(pos + nn * increment)
-                    if not (bb == b1 or bb == b2 or bb == b3):
-                        nn = nn + 1
-                        # check if no own figure is in the way
-                        if self.white_positions[pos + nn * increment] == 0:
-                            if self.black_positions[pos + nn * increment] == 0:
-                                arr.append(pos + nn * increment)
-                            elif self.black_positions[pos + nn * increment] != self.enemy_king:
-                                arr.append(pos + nn * increment)
-                                available = False
-                            else:
-                                available = False
-                        else:
-                            available = False
-                    else:
-                        available = False
-                return arr
-
-            elif color == 'black':
-                # go direction
-                nn = 0
-                available = True
-                while available:
-                    # check if not already upper border
-                    bb = self.get_boundary_type(pos + nn * increment)
-                    if not (bb == b1 or bb == b2 or bb == b3):
-                        nn = nn + 1
-                        # check if no own figure is in the way
-                        if self.black_positions[pos + nn * increment] == 0:
-                            if self.white_positions[pos + nn * increment] == 0:
-                                arr.append(pos + nn * increment)
-                            elif self.white_positions[pos + nn * increment] != self.enemy_king:
-                                arr.append(pos + nn * increment)
-                                available = False
-                            else:
-                                available = False
-                        else:
-                            available = False
-                    else:
-                        available = False
-                return arr
-
         if direction == 'up':
-            return move_straight(pos, -8, 8, 1, 4, self.color)
+            return move_straight(pos, -8, 8, 1, 4, self.color, self.boundary_LT, self.white_positions,
+                                 self.black_positions, self.enemy_king)
         elif direction == 'down':
-            return move_straight(pos, 8, 6, 2, 3, self.color)
+            return move_straight(pos, 8, 6, 2, 3, self.color, self.boundary_LT, self.white_positions,
+                                 self.black_positions, self.enemy_king)
         elif direction == 'left':
-            return move_straight(pos, -1, 5, 1, 2, self.color)
+            return move_straight(pos, -1, 5, 1, 2, self.color, self.boundary_LT, self.white_positions,
+                                 self.black_positions, self.enemy_king)
         elif direction == 'right':
-            return move_straight(pos, 1, 7, 3, 4, self.color)
+            return move_straight(pos, 1, 7, 3, 4, self.color, self.boundary_LT, self.white_positions,
+                                 self.black_positions, self.enemy_king)
 
     def go_diagonal_direction(self, direction):
         pos = self.current_position
 
-        def move_diagonal(pos, increment, b1, b2, b3, b4, b5, color):
-            arr = []
-            if color == 'white':
-                # go direction
-                nn = 0
-                available = True
-                while available:
-                    # check if not already upper border
-                    bb = self.get_boundary_type(pos + nn * increment)
-                    if not (bb == b1 or bb == b2 or bb == b3 or bb == b4 or bb == b5):
-                        nn = nn + 1
-                        # check if no own figure is in the way
-                        if self.white_positions[pos + nn * increment] == 0:
-                            if self.black_positions[pos + nn * increment] == 0:
-                                arr.append(pos + nn * increment)
-                            elif self.black_positions[pos + nn * increment] != self.enemy_king:
-                                arr.append(pos + nn * increment)
-                                available = False
-                            else:
-                                available = False
-                        else:
-                            available = False
-                    else:
-                        available = False
-                return arr
-
-            elif color == 'black':
-                # go direction
-                nn = 0
-                available = True
-                while available:
-                    # check if not already upper border
-                    bb = self.get_boundary_type(pos + nn * increment)
-                    if not (bb == b1 or bb == b2 or bb == b3 or bb == b4 or bb == b5):
-                        nn = nn + 1
-                        # check if no own figure is in the way
-                        if self.black_positions[pos + nn * increment] == 0:
-                            if self.white_positions[pos + nn * increment] == 0:
-                                arr.append(pos + nn * increment)
-                            elif self.white_positions[pos + nn * increment] != self.enemy_king:
-                                arr.append(pos + nn * increment)
-                                available = False
-                            else:
-                                available = False
-                        else:
-                            available = False
-                    else:
-                        available = False
-                return arr
-
         if direction == 'left_up':
-            return move_diagonal(pos, -9, 5, 8, 2, 1, 4, self.color)
+            return move_diagonal(pos, -9, 5, 8, 2, 1, 4, self.color, self.boundary_LT, self.white_positions,
+                                 self.black_positions, self.enemy_king)
         elif direction == 'right_up':
-            return move_diagonal(pos, -7, 7, 8, 3, 1, 4, self.color)
+            return move_diagonal(pos, -7, 7, 8, 3, 1, 4, self.color, self.boundary_LT, self.white_positions,
+                                 self.black_positions, self.enemy_king)
         elif direction == 'left_down':
-            return move_diagonal(pos, 7, 5, 6, 1, 2, 3, self.color)
+            return move_diagonal(pos, 7, 5, 6, 1, 2, 3, self.color, self.boundary_LT, self.white_positions,
+                                 self.black_positions, self.enemy_king)
         elif direction == 'right_down':
-            return move_diagonal(pos, 9, 7, 6, 2, 3, 4, self.color)
+            return move_diagonal(pos, 9, 7, 6, 2, 3, 4, self.color, self.boundary_LT, self.white_positions,
+                                 self.black_positions, self.enemy_king)
 
 
 class Pawn(Figure):
@@ -470,9 +481,9 @@ class Chessboard:
     def get_all_possible_moves(self, color):
         all_moves = []
         if color == 'white':
-            for figure in self.white_figures:
-                all_moves.append(figure.get_possible_movement_positions())
+            for key in self.white_figures.keys():
+                all_moves.append(self.white_figures[key].get_possible_movement_positions())
         else:
-            for figure in self.black_figures:
-                all_moves.append(figure.get_possible_movement_positions())
+            for key in self.black_figures.keys():
+                all_moves.append(self.black_figures[key].get_possible_movement_positions())
         return all_moves
