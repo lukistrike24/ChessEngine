@@ -110,6 +110,70 @@ def move_diagonal(pos, increment, b1, b2, b3, b4, b5, color, boundary_LT, white_
         return arr
 
 
+@jit(cache=True, nopython=True, fastmath=True)
+def move_pawn(pos, boundary, color, black_positions, white_positions, enemy_king, already_moved, index):
+    arr = []
+    if color == 'white':
+        # normal field no boundary
+        if boundary > 8:
+            if black_positions[pos + 8] == 0 and white_positions[pos + 8] == 0:
+                arr.append(pos + 8)
+                if already_moved == False and black_positions[pos + 16] == 0:
+                    arr.append(pos + 16)
+            if black_positions[pos + 7] != 0 and black_positions[pos + 7] != enemy_king:
+                arr.append(pos + 7)
+            if black_positions[pos + 9] != 0 and black_positions[pos + 9] != enemy_king:
+                arr.append(pos + 9)
+        # left border
+        elif boundary == 5:
+            if black_positions[pos + 8] == 0 and white_positions[pos + 8] == 0:
+                arr.append(pos + 8)
+                if already_moved == False and black_positions[pos + 16] == 0:
+                    arr.append(pos + 16)
+            if black_positions[pos + 9] != 0 and black_positions[pos + 9] != enemy_king:
+                arr.append(pos + 9)
+        # right border
+        elif boundary == 7:
+            if black_positions[pos + 8] == 0 and white_positions[pos + 8] == 0:
+                arr.append(pos + 8)
+                if already_moved == False and black_positions[pos + 16] == 0:
+                    arr.append(pos + 16)
+            if black_positions[pos + 7] != 0 and black_positions[pos + 7] != enemy_king:
+                arr.append(pos + 7)
+    elif color == 'black':
+        # normal field no boundary
+        if boundary > 8:
+            if white_positions[pos - 8] == 0 and black_positions[pos - 8] == 0:
+                arr.append(pos - 8)
+                if already_moved == False and white_positions[pos - 16] == 0:
+                    arr.append(pos - 16)
+            if white_positions[pos - 7] != 0 and white_positions[pos - 7] != enemy_king:
+                arr.append(pos - 7)
+            if white_positions[pos - 9] != 0 and white_positions[pos - 9] != enemy_king:
+                arr.append(pos - 9)
+        # left border
+        elif boundary == 5:
+            if white_positions[pos - 8] == 0 and black_positions[pos - 8] == 0:
+                arr.append(pos - 8)
+                if already_moved == False and white_positions[pos - 16] == 0:
+                    arr.append(pos - 16)
+            if white_positions[pos - 7] != 0 and white_positions[pos - 7] != enemy_king:
+                arr.append(pos - 7)
+        # right border
+        elif boundary == 7:
+            if white_positions[pos - 8] == 0 and black_positions[pos - 8] == 0:
+                arr.append(pos - 8)
+                if already_moved == False and white_positions[pos - 16] == 0:
+                    arr.append(pos - 16)
+            if white_positions[pos - 9] != 0 and white_positions[pos - 9] != enemy_king:
+                arr.append(pos - 9)
+
+    array = np.empty((len(arr), 2), dtype=np.uint8)
+    array[:, 0] = index
+    array[:, 1] = np.array(arr)
+    return array
+
+
 class Figure:
     def __init__(self, index, color, white_positions, black_positions, position, Lookup_Tables):
         self.index = index
@@ -181,68 +245,8 @@ class Pawn(Figure):
     def get_possible_movement_positions(self):
         pos = self.current_position
         boundary = self.get_boundary_type(pos)
-        arr = []
-        if self.color == 'white':
-            # normal field no boundary
-            if boundary > 8:
-                if self.black_positions[pos + 8] == 0 and self.white_positions[pos + 8] == 0:
-                    arr.append(pos + 8)
-                    if self.already_moved == False and self.black_positions[pos + 16] == 0:
-                        arr.append(pos + 16)
-                if self.black_positions[pos + 7] != 0 and self.black_positions[pos + 7] != self.enemy_king:
-                    arr.append(pos + 7)
-                if self.black_positions[pos + 9] != 0 and self.black_positions[pos + 9] != self.enemy_king:
-                    arr.append(pos + 9)
-            # left border
-            elif boundary == 5:
-                if self.black_positions[pos + 8] == 0 and self.white_positions[pos + 8] == 0:
-                    arr.append(pos + 8)
-                    if self.already_moved == False and self.black_positions[pos + 16] == 0:
-                        arr.append(pos + 16)
-                if self.black_positions[pos + 9] != 0 and self.black_positions[pos + 9] != self.enemy_king:
-                    arr.append(pos + 9)
-            # right border
-            elif boundary == 7:
-                if self.black_positions[pos + 8] == 0 and self.white_positions[pos + 8] == 0:
-                    arr.append(pos + 8)
-                    if self.already_moved == False and self.black_positions[pos + 16] == 0:
-                        arr.append(pos + 16)
-                if self.black_positions[pos + 7] != 0 and self.black_positions[pos + 7] != self.enemy_king:
-                    arr.append(pos + 7)
-        elif self.color == 'black':
-            # normal field no boundary
-            if boundary > 8:
-                if self.white_positions[pos - 8] == 0 and self.black_positions[pos - 8] == 0:
-                    arr.append(pos - 8)
-                    if self.already_moved == False and self.white_positions[pos - 16] == 0:
-                        arr.append(pos - 16)
-                if self.white_positions[pos - 7] != 0 and self.white_positions[pos - 7] != self.enemy_king:
-                    arr.append(pos - 7)
-                if self.white_positions[pos - 9] != 0 and self.white_positions[pos - 9] != self.enemy_king:
-                    arr.append(pos - 9)
-            # left border
-            elif boundary == 5:
-                if self.white_positions[pos - 8] == 0 and self.black_positions[pos - 8] == 0:
-                    arr.append(pos - 8)
-                    if self.already_moved == False and self.white_positions[pos - 16] == 0:
-                        arr.append(pos - 16)
-                if self.white_positions[pos - 7] != 0 and self.white_positions[pos - 7] != self.enemy_king:
-                    arr.append(pos - 7)
-            # right border
-            elif boundary == 7:
-                if self.white_positions[pos - 8] == 0 and self.black_positions[pos - 8] == 0:
-                    arr.append(pos - 8)
-                    if self.already_moved == False and self.white_positions[pos - 16] == 0:
-                        arr.append(pos - 16)
-                if self.white_positions[pos - 9] != 0 and self.white_positions[pos - 9] != self.enemy_king:
-                    arr.append(pos - 9)
-
-        array = np.empty((len(arr), 2), dtype=np.uint8)
-        array[:, 0] = self.index
-        array[:, 1] = np.array(arr)
-        return array
-
-        return 1  # return all possible movement positions
+        return move_pawn(pos, boundary, self.color, self.black_positions, self.white_positions, self.enemy_king,
+                         self.already_moved, self.index)
 
     def check_threatenings(self):
         return 1  # return index of threatened figures if there are any
