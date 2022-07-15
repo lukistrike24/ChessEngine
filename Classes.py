@@ -174,6 +174,82 @@ def move_pawn(pos, boundary, color, black_positions, white_positions, enemy_king
     return array
 
 
+@jit(cache=True, nopython=True, fastmath=True)
+def move_knight(pos, boundary, color, black_positions, white_positions, enemy_king, already_moved, index):
+    arr = []
+    boundary_val = [17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+    field_values = [[-15, -6, 10, 17, 15, 6, -10, -17], [-6, 10, 17, 15, 6, -10], [-15, 17, 15, 6, -10, -17],
+                    [-15, -6, 10, 6, -10, -17], [-15, -6, 10, 17, 15, -17], [17, 15, 6, -10], [-15, 6, -10, -17],
+                    [-15, -6, 10, -17], [-6, 10, 17, 15], [10, 17, 15, 6], [15, 6, -10, -17], [-15, -6, -10, -17],
+                    [-15, -6, 10, 17], [6, 15], [-10, -17], [-6, -15], [10, 17]]
+
+    not_allowed = False
+    if color == 'white':
+        # check all boundary conditions
+        for ind, b_val in enumerate(boundary_val):
+            if boundary == b_val:
+                for val in field_values[ind]:
+                    # further checks
+                    if pos == 6 and (pos + val) == 16:
+                        not_allowed = True
+                    elif pos == 1 and (pos + val) == 7:
+                        not_allowed = True
+                    elif pos == 8 and (pos + val) == -7:
+                        not_allowed = True
+                    elif pos == 48 and (pos + val) == 65:
+                        not_allowed = True
+                    elif pos == 57 and (pos + val) == 47:
+                        not_allowed = True
+                    elif pos == 62 and (pos + val) == 56:
+                        not_allowed = True
+                    elif pos == 55 and (pos + val) == 70:
+                        not_allowed = True
+                    elif pos == 15 and (pos + val) == -2:
+                        not_allowed = True
+                    else:
+                        not_allowed = False
+
+                    if not not_allowed:
+                        if white_positions[pos + val] == 0 and black_positions[pos + val] != enemy_king:
+                            arr.append(pos + val)
+                break
+
+    elif color == 'black':
+        # check all boundary conditions
+        for ind, b_val in enumerate(boundary_val):
+            if boundary == b_val:
+                for val in field_values[ind]:
+                    # further checks
+                    if pos == 6 and (pos + val) == 16:
+                        not_allowed = True
+                    elif pos == 1 and (pos + val) == 7:
+                        not_allowed = True
+                    elif pos == 8 and (pos + val) == -7:
+                        not_allowed = True
+                    elif pos == 48 and (pos + val) == 65:
+                        not_allowed = True
+                    elif pos == 57 and (pos + val) == 47:
+                        not_allowed = True
+                    elif pos == 62 and (pos + val) == 56:
+                        not_allowed = True
+                    elif pos == 55 and (pos + val) == 70:
+                        not_allowed = True
+                    elif pos == 15 and (pos + val) == -2:
+                        not_allowed = True
+                    else:
+                        not_allowed = False
+
+                    if not not_allowed:
+                        if black_positions[pos + val] == 0 and white_positions[pos + val] != enemy_king:
+                            arr.append(pos + val)
+                break
+
+    array = np.empty((len(arr), 2), dtype=np.uint8)
+    array[:, 0] = index
+    array[:, 1] = np.array(arr)
+    return array
+
+
 class Figure:
     def __init__(self, index, color, white_positions, black_positions, position, Lookup_Tables):
         self.index = index
@@ -297,7 +373,10 @@ class Knight(Figure):
         super().__init__(index, color, white_positions, black_positions, position, Lookup_Tables)
 
     def get_possible_movement_positions(self):
-        return self.index  # return all possible movement positions
+        pos = self.current_position
+        boundary = self.get_boundary_type(pos)
+        return move_knight(pos, boundary, self.color, self.black_positions, self.white_positions, self.enemy_king,
+                           self.already_moved, self.index)
 
     def check_threatenings(self):
         return 1  # return index of threatened figures if there are any
