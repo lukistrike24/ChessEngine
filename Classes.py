@@ -175,6 +175,146 @@ def move_pawn(pos, boundary, color, black_positions, white_positions, enemy_king
 
 
 @jit(cache=True, nopython=True, fastmath=True)
+def move_king(pos, boundary, color, boundary_LT, black_positions, white_positions, enemy_king, already_moved, index):
+    arr = []
+    if color == 'white':
+        ek_pos = black_positions[np.where(black_positions == enemy_king)]
+    else:
+        ek_pos = white_positions[np.where(white_positions == enemy_king)]
+
+    ek_boundary = boundary_LT[ek_pos[0]]
+
+    # get enemy king influence field
+    if ek_boundary > 8:
+        ek = [ek_pos + 0, ek_pos + 1, ek_pos - 1, ek_pos - 7, ek_pos - 8, ek_pos - 9, ek_pos + 7, ek_pos + 8,
+              ek_pos + 9]  # not allowed positions due to enemy king
+    elif ek_boundary == 8:
+        ek = [ek_pos + 0, ek_pos - 1, ek_pos + 1, ek_pos + 9, ek_pos + 7, ek_pos + 8]
+    elif ek_boundary == 7:
+        ek = [ek_pos + 0, ek_pos - 1, ek_pos - 8, ek_pos - 9, ek_pos + 7, ek_pos + 8]
+    elif ek_boundary == 6:
+        ek = [ek_pos + 0, ek_pos - 1, ek_pos - 8, ek_pos - 9, ek_pos + 1, ek_pos - 7]
+    elif ek_boundary == 5:
+        ek = [ek_pos + 0, ek_pos + 1, ek_pos - 8, ek_pos - 7, ek_pos + 8, ek_pos + 9]
+    elif ek_boundary == 4:
+        ek = [ek_pos + 0, ek_pos - 1, ek_pos + 8, ek_pos + 7]
+    elif ek_boundary == 3:
+        ek = [ek_pos + 0, ek_pos - 1, ek_pos - 8, ek_pos - 9]
+    elif ek_boundary == 2:
+        ek = [ek_pos + 0, ek_pos - 8, ek_pos - 7, ek_pos + 1]
+    elif ek_boundary == 1:
+        ek = [ek_pos + 0, ek_pos + 1, ek_pos + 8, ek_pos + 9]
+
+    # ek = np.array(ek, dtype=np.int32)
+    def ek_intersect(position, ekk):
+        for pp in ekk:
+            if pp == position:
+                return True
+        return False
+
+    if color == 'white':
+        # normal field no boundary
+        if boundary > 8:
+            mov = [-9, -8, -7, +1, +9, +8, +7, -1]
+            for m in mov:
+                if white_positions[pos + m] == 0 and not ek_intersect(pos + m, ek):
+                    arr.append(pos + m)
+        elif boundary == 8:
+            mov = [-1, +1, +8, +7, +9]
+            for m in mov:
+                if white_positions[pos + m] == 0 and not ek_intersect(pos + m, ek):
+                    arr.append(pos + m)
+        elif boundary == 7:
+            mov = [-9, -8, +8, +7, -1]
+            for m in mov:
+                if white_positions[pos + m] == 0 and not ek_intersect(pos + m, ek):
+                    arr.append(pos + m)
+        elif boundary == 6:
+            mov = [-9, -8, -7, +1, -1]
+            for m in mov:
+                if white_positions[pos + m] == 0 and not ek_intersect(pos + m, ek):
+                    arr.append(pos + m)
+        elif boundary == 5:
+            mov = [-8, -7, +1, +9, +8]
+            for m in mov:
+                if white_positions[pos + m] == 0 and not ek_intersect(pos + m, ek):
+                    arr.append(pos + m)
+        elif boundary == 4:
+            mov = [-1, 7, 8]
+            for m in mov:
+                if white_positions[pos + m] == 0 and not ek_intersect(pos + m, ek):
+                    arr.append(pos + m)
+        elif boundary == 3:
+            mov = [-1, -8, -9]
+            for m in mov:
+                if white_positions[pos + m] == 0 and not ek_intersect(pos + m, ek):
+                    arr.append(pos + m)
+        elif boundary == 2:
+            mov = [-8, -7, +1]
+            for m in mov:
+                if white_positions[pos + m] == 0 and not ek_intersect(pos + m, ek):
+                    arr.append(pos + m)
+        elif boundary == 1:
+            mov = [1, 8, 9]
+            for m in mov:
+                if white_positions[pos + m] == 0 and not ek_intersect(pos + m, ek):
+                    arr.append(pos + m)
+
+    elif color == 'black':
+        # normal field no boundary
+        if boundary > 8:
+            mov = [-9, -8, -7, +1, +9, +8, +7, -1]
+            for m in mov:
+                if black_positions[pos + m] == 0 and not ek_intersect(pos + m, ek):
+                    arr.append(pos + m)
+        elif boundary == 8:
+            mov = [-1, +1, +8, +7, +9]
+            for m in mov:
+                if black_positions[pos + m] == 0 and not ek_intersect(pos + m, ek):
+                    arr.append(pos + m)
+        elif boundary == 7:
+            mov = [-9, -8, +8, +7, -1]
+            for m in mov:
+                if black_positions[pos + m] == 0 and not ek_intersect(pos + m, ek):
+                    arr.append(pos + m)
+        elif boundary == 6:
+            mov = [-9, -8, -7, +1, -1]
+            for m in mov:
+                if black_positions[pos + m] == 0 and not ek_intersect(pos + m, ek):
+                    arr.append(pos + m)
+        elif boundary == 5:
+            mov = [-8, -7, +1, +9, +8]
+            for m in mov:
+                if black_positions[pos + m] == 0 and not ek_intersect(pos + m, ek):
+                    arr.append(pos + m)
+        elif boundary == 4:
+            mov = [-1, 7, 8]
+            for m in mov:
+                if black_positions[pos + m] == 0 and not ek_intersect(pos + m, ek):
+                    arr.append(pos + m)
+        elif boundary == 3:
+            mov = [-1, -8, -9]
+            for m in mov:
+                if black_positions[pos + m] == 0 and not ek_intersect(pos + m, ek):
+                    arr.append(pos + m)
+        elif boundary == 2:
+            mov = [-8, -7, +1]
+            for m in mov:
+                if black_positions[pos + m] == 0 and not ek_intersect(pos + m, ek):
+                    arr.append(pos + m)
+        elif boundary == 1:
+            mov = [1, 8, 9]
+            for m in mov:
+                if black_positions[pos + m] == 0 and not ek_intersect(pos + m, ek):
+                    arr.append(pos + m)
+
+    array = np.empty((len(arr), 2), dtype=np.uint8)
+    array[:, 0] = index
+    array[:, 1] = np.array(arr)
+    return array
+
+
+@jit(cache=True, nopython=True, fastmath=True)
 def move_knight(pos, boundary, color, black_positions, white_positions, enemy_king, already_moved, index):
     arr = []
     boundary_val = [17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
@@ -412,7 +552,10 @@ class King(Figure):
         super().__init__(index, color, white_positions, black_positions, position, Lookup_Tables)
 
     def get_possible_movement_positions(self):
-        return self.index  # return all possible movement positions
+        pos = self.current_position
+        boundary = self.get_boundary_type(pos)
+        return move_king(pos, boundary, self.color, self.boundary_LT, self.black_positions, self.white_positions,
+                         self.enemy_king, self.already_moved, self.index)
 
     def check_threatenings(self):
         return 1  # return index of threatened figures if there are any
